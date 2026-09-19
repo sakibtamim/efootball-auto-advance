@@ -1,4 +1,4 @@
-# eFootball AI Match Automation Bot (EndeavourOS / Linux)
+# eFootball Auto Advance (Linux / EndeavourOS)
 
 Automates skipping cutscenes, advancing through post-match screens (halftime stats, fulltime stats, EXP/player levels, rewards), and continuing to the next match in **eFootball** on Steam (via Proton) using a virtual controller and Computer Vision.
 
@@ -7,7 +7,7 @@ Automates skipping cutscenes, advancing through post-match screens (halftime sta
 ## Architecture Overview
 
 1. **Input**: Emulates a physical Xbox controller using Linux's native `/dev/uinput` via `python-evdev`. Steam Input and Proton detect this as a real hardware controller.
-2. **Vision**: Takes fast screen captures via `mss` and searches for UI buttons ("Continue", "Skip", "Next", "To Next Match", or controller 'A' icons) using OpenCV template matching.
+2. **Vision**: Takes fast screen captures via `mss` (X11) or `spectacle` (Wayland) and searches for UI buttons ("Continue", "Skip", "Next", "To Next Match", or controller 'A' icons) using OpenCV template matching.
 3. **Anti-Detection**: Uses randomized delays and humanized button hold durations.
 
 ---
@@ -35,10 +35,11 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 ## 2. Installation
 
-Create a Python virtual environment (recommended on Arch Linux):
+Clone the repository and create a Python virtual environment:
 
 ```bash
-cd efootball_bot
+git clone https://github.com/sakibtamim/efootball-auto-advance.git
+cd efootball-auto-advance
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt

@@ -1,8 +1,9 @@
 """
 bot.py
-Main automation bot for eFootball on Linux (EndeavourOS / Arch / Steam Proton).
+Cross-platform automation bot for eFootball (Linux / Windows).
 Supports:
-- Wayland (KDE Plasma Spectacle) and X11 (mss)
+- Windows (mss screen capture & DirectInput / ViGEmBus input)
+- Linux / EndeavourOS / Steam Proton (Wayland KDE Spectacle / X11 mss & /dev/uinput)
 - Keyboard input (Enter) and Controller input (Xbox A)
 """
 
@@ -24,37 +25,55 @@ DEFAULT_CONFIDENCE = 0.75
 TEMPLATES_DIR = "templates"
 
 class ScreenGrabber:
-    """Handles screenshot capture on both Wayland (KDE Spectacle) and X11 (mss)."""
+    """Handles screenshot capture on Windows (mss), Wayland (KDE Spectacle), and X11 (mss)."""
     def __init__(self, monitor_idx=1):
         self.monitor_idx = monitor_idx
-        self.is_wayland = bool(
-            os.environ.get("WAYLAND_DISPLAY") or
-            os.environ.get("XDG_SESSION_TYPE") == "wayland"
-        )
-        self.shm_path = "/dev/shm/efootball_screen.png"
-        backend = "KDE Spectacle (Wayland)" if self.is_wayland else "mss (X11)"
+        self.is_windows = (sys.platform == "win32")
+
+        if self.is_windows:
+            # Enable per-monitor DPI awareness so MSS captures at 1:1 native resolution
+            try:
+                import ctypes
+                ctypes.windll.shcore.SetProcessDpiAwareness(2)
+            except Exception:
+                try:
+                    import ctypes
+                    ctypes.windll.user32.SetProcessDPIAware()
+                except Exception:
+                    pass
+            self.is_wayland = False
+            self.shm_path = None
+            backend = "mss (Windows Native)"
+        else:
+            self.is_wayland = bool(
+                os.environ.get("WAYLAND_DISPLAY") or
+                os.environ.get("XDG_SESSION_TYPE") == "wayland"
+            )
+            self.shm_path = "/dev/shm/efootball_screen.png"
+            backend = "KDE Spectacle (Wayland)" if self.is_wayland else "mss (Linux X11)"
+
         print(f"[Screen] Capture backend: {backend}")
 
     def grab(self):
-        if self.is_wayland:
+        if not self.is_windows and self.is_wayland:
             # Native Wayland capture to RAM disk via Spectacle
             subprocess.run(
                 ["spectacle", "-b", "-n", "-f", "-o", self.shm_path],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
-            if os.path.exists(self.shm_path):
+            if self.shm_path and os.path.exists(self.shm_path):
                 img = cv2.imread(self.shm_path)
                 if img is not None and img.mean() > 1.0:
                     return img
 
-        # Fallback to mss (X11)
+        # Fallback to mss (Windows / Linux X11)
         with mss.MSS() as sct:
             if self.monitor_idx >= len(sct.monitors):
                 self.monitor_idx = 1
             raw = np.array(sct.grab(sct.monitors[self.monitor_idx]))
             # If mss gives all black on Wayland, switch to Spectacle
-            if raw.mean() < 1.0 and not self.is_wayland:
+            if not self.is_windows and raw.mean() < 1.0 and not self.is_wayland:
                 print("[Screen] Notice: X11 returned black screen. Switching to Spectacle Wayland capture.")
                 self.is_wayland = True
                 return self.grab()
@@ -219,7 +238,7 @@ class EFootballBot:
         print("[Shutdown] Bot stopped cleanly.")
 
 def main():
-    parser = argparse.ArgumentParser(description="eFootball Linux Auto-Skip / Auto-Continue Bot")
+    parser = argparse.ArgumentParser(description="eFootball Auto-Skip / Auto-Continue Bot (Linux & Windows)")
     parser.add_argument("--confidence", "-c", type=float, default=DEFAULT_CONFIDENCE,
                         help="Confidence threshold for template matching (0.0 to 1.0, default: 0.75)")
     parser.add_argument("--monitor", "-m", type=int, default=1,

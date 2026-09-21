@@ -1,74 +1,88 @@
-# eFootball Auto Advance (Linux / EndeavourOS)
+# eFootball Auto Advance (Linux & Windows)
 
-Automates skipping cutscenes, advancing through post-match screens (halftime stats, fulltime stats, EXP/player levels, rewards), and continuing to the next match in **eFootball** on Steam (via Proton) using a virtual controller and Computer Vision.
+Cross-platform bot that automates skipping cutscenes, advancing through post-match screens (halftime stats, fulltime stats, EXP/player levels, rewards), and continuing to the next match in **eFootball** on Steam using Computer Vision and simulated inputs.
+
+Supports:
+- **Linux** (EndeavourOS / Arch / Steam Proton via `/dev/uinput` and KDE Spectacle / X11 `mss`)
+- **Windows** (DirectInput hardware scancodes via Win32 `SendInput`, `vgamepad` with ViGEmBus, and native `mss`)
 
 ---
 
 ## Architecture Overview
 
-1. **Input**: Emulates a physical Xbox controller using Linux's native `/dev/uinput` via `python-evdev`. Steam Input and Proton detect this as a real hardware controller.
-2. **Vision**: Takes fast screen captures via `mss` (X11) or `spectacle` (Wayland) and searches for UI buttons ("Continue", "Skip", "Next", "To Next Match", or controller 'A' icons) using OpenCV template matching.
-3. **Anti-Detection**: Uses randomized delays and humanized button hold durations.
+1. **Vision Engine (Cross-Platform)**: Takes high-performance screen captures via `mss` (Windows/X11) or `spectacle` (Linux Wayland) and detects UI buttons ("Continue", "Skip", "Next", "To Next Match", or controller 'A' prompts) using OpenCV template matching.
+2. **Input Emulation**:
+   - **Linux**: Emulates a hardware Xbox controller and/or keyboard via `/dev/uinput` using `python-evdev`.
+   - **Windows**: Emulates DirectX hardware keyboard scancodes (`0x1C` for `Enter`) directly via Win32 `SendInput`, and Xbox 360 controller (`A` button) via `vgamepad` / ViGEmBus.
+3. **Anti-Detection**: Employs randomized reaction delays, natural button hold intervals, and periodic cutscene wakeups.
 
 ---
 
-## 1. Prerequisites (EndeavourOS / Arch)
+## 1. Setup Guide
 
-### Granting `/dev/uinput` Access
-Linux restricts creating virtual hardware to root by default. Run the included setup script once:
+### Windows Setup
 
-```bash
-chmod +x setup_uinput.sh
-./setup_uinput.sh
-```
+1. Make sure you have **Python 3.10+** installed (with **"Add python.exe to PATH"** checked).
+2. Set eFootball display mode to **Borderless** or **Windowed** in the game's graphics settings.
+3. Double-click `setup_windows.bat` or run in Command Prompt:
+   ```cmd
+   git clone https://github.com/sakibtamim/efootball-auto-advance.git
+   cd efootball-auto-advance
+   python -m venv venv
+   venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+4. *(Optional - For Gamepad Mode)*: If you wish to use controller mode instead of keyboard, install the [ViGEmBus Driver](https://github.com/nefarius/ViGEmBus/releases). (Keyboard mode works out of the box with 0 extra drivers).
 
-Or manually:
-```bash
-sudo modprobe uinput
-sudo usermod -aG input $USER
-echo 'KERNEL=="uinput", MODE="0660", GROUP="input", OPTIONS+="static_node=uinput"' | sudo tee /etc/udev/rules.d/99-uinput.rules
-sudo udevadm control --reload-rules && sudo udevadm trigger
-```
-*(Note: If you just added yourself to the `input` group, log out and back in once for permissions to apply).*
+### Linux (EndeavourOS / Arch) Setup
 
----
-
-## 2. Installation
-
-Clone the repository and create a Python virtual environment:
-
-```bash
-git clone https://github.com/sakibtamim/efootball-auto-advance.git
-cd efootball-auto-advance
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
----
-
-## 3. Quick Verification
-
-Verify that your user has permission to create a virtual controller:
-
-```bash
-python test_controller.py
-```
-If configured correctly, this will create a virtual Xbox controller, simulate pressing 'A' and 'Start', and report success.
+1. Grant `/dev/uinput` permissions once:
+   ```bash
+   chmod +x setup_uinput.sh
+   ./setup_uinput.sh
+   ```
+   *(Or run `sudo modprobe uinput && sudo usermod -aG input $USER` and log out/in).*
+2. Clone repository and install dependencies:
+   ```bash
+   git clone https://github.com/sakibtamim/efootball-auto-advance.git
+   cd efootball-auto-advance
+   python -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
 ---
 
-## 4. Capturing Template Images
+## 2. Quick Verification
 
-For the bot to know when to press buttons, it needs small PNG reference templates of the buttons in your game resolution.
+Verify that your input devices are working properly (you can call the venv Python directly without activating):
+
+```bash
+# Linux
+./venv/bin/python test_controller.py
+
+# Windows
+venv\Scripts\python.exe test_controller.py
+```
+This tests the Keyboard (`Enter`) and Controller (`A`) simulations and reports readiness.
+
+---
+
+## 3. Capturing Template Images
+
+The bot matches small PNG reference templates of the buttons in your game resolution:
 
 1. Launch **eFootball**.
-2. When you reach a screen with a button you want to auto-click (e.g. "Continue", "Skip", or the "A: Advance" prompt), run:
+2. When you reach a screen with a button to click (e.g. "Continue", "Skip", or "Next"), run:
    ```bash
-   python grab_template.py
+   # Linux
+   ./venv/bin/python grab_template.py
+
+   # Windows
+   venv\Scripts\python.exe grab_template.py
    ```
-3. It gives you 3 seconds to switch to the game and saves `screenshot_raw.png`.
-4. Crop just the button text or icon and save it into the `templates/` directory:
+3. Switch to eFootball within 3 seconds. It will save `screenshot_raw_<timestamp>.png`.
+4. Select and crop the button area using the interactive window, or crop it manually and save into the `templates/` folder:
    - `templates/continue.png`
    - `templates/skip.png`
    - `templates/next.png`
@@ -76,32 +90,73 @@ For the bot to know when to press buttons, it needs small PNG reference template
 
 ---
 
-## 5. Running the Bot
+## 4. Running the Bot
 
-1. Set your match controls in eFootball to **AI Controlled** (available in VS AI Events and Tour Events).
-2. Start the bot:
+1. Set your match controls in eFootball to **AI Controlled** (VS AI Events, Tour Events, etc.).
+2. Start the bot directly using your virtual environment's Python (no need to run `source venv/bin/activate` every time):
+
+   **Linux (EndeavourOS / Arch)**:
    ```bash
-   # Default: fires BOTH Keyboard (Enter) and Controller (A)
-   python bot.py
+   # Keyboard only (uses Enter - Recommended):
+   ./venv/bin/python bot.py --input keyboard
 
-   # Keyboard only (uses Enter to advance/skip):
-   python bot.py --input keyboard
+   # Default (fires both Enter + A):
+   ./venv/bin/python bot.py
 
-   # Controller only (uses 'A' to advance/skip):
-   python bot.py --input controller
+   # Controller only (uses 'A' button):
+   ./venv/bin/python bot.py --input controller
    ```
+
+   **Windows**:
+   ```cmd
+   # Keyboard only (uses Enter - Recommended):
+   venv\Scripts\python.exe bot.py --input keyboard
+
+   # Default (fires both Enter + A):
+   venv\Scripts\python.exe bot.py
+
+   # Controller only (uses 'A' button):
+   venv\Scripts\python.exe bot.py --input controller
+   ```
+
+   *(Tip: If your terminal already has `venv` activated, typing plain `python bot.py ...` works identically).*
+
 3. Switch back to eFootball.
-4. Press `Ctrl+C` in the terminal when you want to stop the bot.
+4. Press `Ctrl+C` in the terminal when you wish to stop the bot.
 
 ---
 
-## Wayland vs X11 Note
-- **X11**: Works out of the box.
-- **Wayland (KDE / Hyprland / GNOME)**: Since Steam Proton runs under XWayland, `mss` captures XWayland windows directly in most configurations. If your display server blocks screen capture, run under an X11 session or adjust Wayland screen-capture permissions.
+## 5. Optional Shortcut: Linux Shell Alias
+
+If you want to start the bot from **any** terminal directory without having to `cd` into the project or activate the virtual environment:
+
+Add this alias to your shell configuration (`~/.bashrc` or `~/.zshrc`), replacing `/path/to/` with your actual directory path:
+
+```bash
+alias efootball-bot="/path/to/efootball-auto-advance/venv/bin/python /path/to/efootball-auto-advance/bot.py"
+```
+
+*(Or automatically add it from inside the project directory)*:
+```bash
+echo "alias efootball-bot=\"\$(pwd)/venv/bin/python \$(pwd)/bot.py\"" >> ~/.bashrc
+```
+
+Then reload your configuration (`source ~/.bashrc` or open a new terminal). You can now start the bot anytime simply by running:
+
+```bash
+efootball-bot --input keyboard
+```
+
+---
+
+## Platform Notes
+
+- **Windows**: Make sure eFootball is running in **Borderless** or **Windowed** mode (Exclusive Fullscreen may block screen grabbers).
+- **Linux Wayland**: Native KDE Spectacle capture is automatically used when running under Wayland.
+- **Linux X11**: `mss` is used for screen capture.
 
 ---
 
 ## Disclaimer
 This project is developed for educational, accessibility, and personal automation purposes only. 
 "eFootball" is a registered trademark of KONAMI. This project is not affiliated with, authorized, or endorsed by KONAMI. Use responsibly.
-

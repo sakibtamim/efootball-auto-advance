@@ -16,6 +16,17 @@ import mss
 TEMPLATES_DIR = "templates"
 
 def main():
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        except Exception:
+            try:
+                import ctypes
+                ctypes.windll.user32.SetProcessDPIAware()
+            except Exception:
+                pass
+
     os.makedirs(TEMPLATES_DIR, exist_ok=True)
 
     print("=== eFootball Template Grabber ===")

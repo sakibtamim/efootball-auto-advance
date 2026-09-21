@@ -1,4 +1,5 @@
-evdev>=1.7.0
-mss>=9.0.1
 opencv-python>=4.8.0
+mss>=9.0.1
 numpy>=1.24.0
+evdev>=1.7.0; sys_platform != 'win32'
+vgamepad>=0.3.3; sys_platform == 'win32'

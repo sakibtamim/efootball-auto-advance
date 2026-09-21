@@ -2,7 +2,7 @@
 gamepad.py
 Hardware-level emulation via Linux /dev/uinput using python-evdev.
 Provides:
-- VirtualKeyboard: Pure keyboard device (ID_INPUT_KEYBOARD) sending Enter, Space, Esc
+- VirtualKeyboard: Pure keyboard device (ID_INPUT_KEYBOARD) sending Enter
 - VirtualGamepad: Pure Xbox 360 controller device (ID_INPUT_JOYSTICK)
 - InputManager: High-level controller supporting 'keyboard', 'controller', or 'both'
 """
@@ -17,8 +17,6 @@ PRODUCT_XBOX360 = 0x028E
 KEYBOARD_CAPS = {
     e.EV_KEY: [
         e.KEY_ENTER,
-        e.KEY_SPACE,
-        e.KEY_ESC,
     ]
 }
 
@@ -64,12 +62,6 @@ class VirtualKeyboard:
 
     def press_enter(self, hold_duration=0.15):
         self.press_key(e.KEY_ENTER, hold_duration)
-
-    def press_space(self, hold_duration=0.15):
-        self.press_key(e.KEY_SPACE, hold_duration)
-
-    def press_esc(self, hold_duration=0.15):
-        self.press_key(e.KEY_ESC, hold_duration)
 
     def close(self):
         if hasattr(self, "device") and self.device:
@@ -117,11 +109,11 @@ class InputManager:
 
         if self.mode in ("keyboard", "both"):
             self.kb = VirtualKeyboard()
-            print("[Input] Virtual Keyboard initialized (Enter, Space, Esc).")
+            print("[Input] Virtual Keyboard initialized (Enter).")
 
         if self.mode in ("controller", "both"):
             self.pad = VirtualGamepad()
-            print("[Input] Virtual Xbox Gamepad initialized (A, B, Start).")
+            print("[Input] Virtual Xbox Gamepad initialized (A).")
 
         time.sleep(0.8)
 
@@ -133,20 +125,11 @@ class InputManager:
             self.pad.press_a(hold_duration)
 
     def skip(self, hold_duration=0.15):
-        """Skips cutscenes via Enter/Space (Keyboard) and/or A button (Controller)."""
+        """Skips cutscenes via Enter (Keyboard) and/or A button (Controller)."""
         if self.kb:
             self.kb.press_enter(hold_duration)
-            time.sleep(0.05)
-            self.kb.press_space(hold_duration)
         if self.pad:
             self.pad.press_a(hold_duration)
-
-    def back(self, hold_duration=0.15):
-        """Presses Esc (Keyboard) and/or B button (Controller) to exit menus/replays."""
-        if self.kb:
-            self.kb.press_esc(hold_duration)
-        if self.pad:
-            self.pad.press_b(hold_duration)
 
     def close(self):
         if self.kb:

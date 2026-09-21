@@ -25,23 +25,18 @@ def test_controller():
             inputs.pad.press_a()
             print("   -> Controller 'A' simulated.")
 
-        print("2. Testing Controller 'Start' button...")
-        if inputs.pad:
-            inputs.pad.press_start()
-            print("   -> Controller 'Start' simulated.")
-
-        print("3. Testing Keyboard 'Enter' key...")
+        print("2. Testing Keyboard 'Enter' key...")
         if inputs.kb:
             inputs.kb.press_enter()
             print("   -> Keyboard 'Enter' simulated.")
 
-        print("4. Testing Unified advance() [Both Enter + A]...")
+        print("3. Testing Unified advance() [Both Enter + A]...")
         inputs.advance()
         print("   -> Unified advance simulated.")
 
-        print("5. Testing Unified back() [Both Esc + B]...")
-        inputs.back()
-        print("   -> Unified back simulated.")
+        print("4. Testing Unified skip() [Both Enter + A]...")
+        inputs.skip()
+        print("   -> Unified skip simulated.")
         
         inputs.close()
         print("\nAll input tests PASSED! Your system is ready for the bot.")

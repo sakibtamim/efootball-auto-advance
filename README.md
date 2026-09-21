@@ -81,13 +81,13 @@ For the bot to know when to press buttons, it needs small PNG reference template
 1. Set your match controls in eFootball to **AI Controlled** (available in VS AI Events and Tour Events).
 2. Start the bot:
    ```bash
-   # Default: fires BOTH Keyboard (Enter/Space) and Controller (A/Start)
+   # Default: fires BOTH Keyboard (Enter) and Controller (A)
    python bot.py
 
-   # Keyboard only (uses Enter to advance, Space/Enter to skip):
+   # Keyboard only (uses Enter to advance/skip):
    python bot.py --input keyboard
 
-   # Controller only (uses 'A' to advance, 'Start' to skip):
+   # Controller only (uses 'A' to advance/skip):
    python bot.py --input controller
    ```
 3. Switch back to eFootball.

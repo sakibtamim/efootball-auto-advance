@@ -3,7 +3,7 @@ bot.py
 Main automation bot for eFootball on Linux (EndeavourOS / Arch / Steam Proton).
 Supports:
 - Wayland (KDE Plasma Spectacle) and X11 (mss)
-- Keyboard input (Enter / Space) and Controller input (Xbox A / Start)
+- Keyboard input (Enter) and Controller input (Xbox A)
 """
 
 import os
@@ -225,7 +225,7 @@ def main():
     parser.add_argument("--monitor", "-m", type=int, default=1,
                         help="Monitor index to capture (default: 1)")
     parser.add_argument("--input", "-i", choices=["both", "keyboard", "controller"], default="both",
-                        help="Input mode: 'both' (default), 'keyboard' (Enter/Space), 'controller' (A/Start)")
+                        help="Input mode: 'both' (default), 'keyboard' (Enter), 'controller' (A)")
     parser.add_argument("--poke-interval", "-p", type=float, default=4.0,
                         help="Seconds between gentle Enter taps during cutscenes to show the skip button (0 to disable, default: 4.0)")
     parser.add_argument("--debug", "-d", action="store_true",

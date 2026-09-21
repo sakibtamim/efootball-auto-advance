@@ -32,7 +32,7 @@ Supports:
    venv\Scripts\activate
    pip install -r requirements.txt
    ```
-4. *(Optional - For Gamepad Mode)*: If you wish to use controller mode instead of keyboard, install the [ViGEmBus Driver](https://github.com/nefarius/ViGEmBus/releases). (Keyboard mode works out of the box with 0 extra drivers).
+4. **Install ViGEmBus Driver (Required)**: Download and install the [ViGEmBus Driver](https://github.com/nefarius/ViGEmBus/releases) to enable virtual Xbox 360 controller emulation on Windows.
 
 ### Linux (EndeavourOS / Arch) Setup
 

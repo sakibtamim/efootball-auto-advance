@@ -145,10 +145,10 @@ class EFootballBot:
         hold_time = random.uniform(0.12, 0.20)
 
         if "skip" in template_name:
-            print(f"  [Action] Skipping cutscene (Enter / Space / Start)...")
+            print(f"  [Action] Skipping cutscene (A button / Enter)...")
             self.inputs.skip(hold_duration=hold_time)
         else:
-            print(f"  [Action] Advancing screen (Enter / A button)...")
+            print(f"  [Action] Advancing screen (A button / Enter)...")
             self.inputs.advance(hold_duration=hold_time)
 
         # Post-action cooldown to let game transition screen
@@ -188,10 +188,11 @@ class EFootballBot:
                 else:
                     curr_time = time.time()
                     # If cutscene is playing without showing the skip prompt,
-                    # tap Enter to force eFootball to display the 'Skip' button.
+                    # tap A/Enter to force eFootball to display the 'Skip' button.
                     if self.auto_poke and (curr_time - last_poke_time >= self.poke_interval):
                         now_str = time.strftime("%H:%M:%S")
-                        print(f"[{now_str}] [Cutscene Wakeup] Tapping Enter to reveal skip button...")
+                        btn_name = "A button" if self.input_mode == "controller" else "Enter"
+                        print(f"[{now_str}] [Cutscene Wakeup] Tapping {btn_name} to reveal skip button...")
                         self.inputs.advance(hold_duration=0.12)
                         last_poke_time = curr_time
                         time.sleep(0.4)

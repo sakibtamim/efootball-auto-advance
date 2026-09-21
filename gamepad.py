@@ -133,15 +133,20 @@ class InputManager:
             self.pad.press_a(hold_duration)
 
     def skip(self, hold_duration=0.15):
-        """Skips cutscenes via Enter/Space (Keyboard) and/or Start/A (Controller)."""
+        """Skips cutscenes via Enter/Space (Keyboard) and/or A button (Controller)."""
         if self.kb:
             self.kb.press_enter(hold_duration)
             time.sleep(0.05)
             self.kb.press_space(hold_duration)
         if self.pad:
-            self.pad.press_start(hold_duration)
-            time.sleep(0.05)
             self.pad.press_a(hold_duration)
+
+    def back(self, hold_duration=0.15):
+        """Presses Esc (Keyboard) and/or B button (Controller) to exit menus/replays."""
+        if self.kb:
+            self.kb.press_esc(hold_duration)
+        if self.pad:
+            self.pad.press_b(hold_duration)
 
     def close(self):
         if self.kb:

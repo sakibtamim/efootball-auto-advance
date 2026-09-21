@@ -38,6 +38,10 @@ def test_controller():
         print("4. Testing Unified advance() [Both Enter + A]...")
         inputs.advance()
         print("   -> Unified advance simulated.")
+
+        print("5. Testing Unified back() [Both Esc + B]...")
+        inputs.back()
+        print("   -> Unified back simulated.")
         
         inputs.close()
         print("\nAll input tests PASSED! Your system is ready for the bot.")
